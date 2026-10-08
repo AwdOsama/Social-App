@@ -1,6 +1,7 @@
 import { useContext, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { Post } from "../../../interdaces/posts.inter";
-import { FaRegComment, FaRegHeart, FaShare } from "react-icons/fa";
+import { FaHeart, FaRegComment, FaRegHeart, FaShare } from "react-icons/fa";
 import { FiBookmark, FiMoreHorizontal } from "react-icons/fi";
 import AddComment from "./comments/AddComment";
 import EditPostModal from "./EditPostModal";
@@ -8,11 +9,32 @@ import { timeAgo } from "../../../utilites/timeAgo";
 import { Link } from "react-router-dom";
 import PostOptionsDropdown from "../../../components/dropDowncopmpo/DropDown";
 import { authContext } from "../../../context/auth.context";
+import { likePost } from "../../posts/apis/like";
 
 export default function PostItems({ post }: { post: Post }) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Like state
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(post.likesCount);
+
+  const { mutate: toggleLike, isPending } = useMutation({
+    mutationFn: () => likePost(post._id),
+    onMutate: () => {
+      const prev = { liked, likes };
+      setLiked(!liked);
+      setLikes(liked ? likes - 1 : likes + 1);
+      return prev;
+    },
+    onError: (_err, _vars, prev) => {
+      if (prev) {
+        setLiked(prev.liked);
+        setLikes(prev.likes);
+      }
+    },
+  });
 
   const context = useContext(authContext);
   const isMyPost = !!context?.user && context.user._id === post.user._id;
@@ -83,11 +105,21 @@ export default function PostItems({ post }: { post: Post }) {
         <div className="flex items-center gap-5">
           <button
             type="button"
-            aria-label="Like post"
-            className="flex items-center gap-1.5 text-gray-700 transition-colors hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400"
+            aria-label={liked ? "Unlike post" : "Like post"}
+            onClick={() => toggleLike()}
+            disabled={isPending}
+            className={`flex items-center gap-1.5 transition-colors hover:text-red-500 dark:hover:text-red-400 ${
+              liked
+                ? "text-red-500 dark:text-red-400"
+                : "text-gray-700 dark:text-gray-300"
+            }`}
           >
-            <FaRegHeart className="h-5 w-5" />
-            <span className="text-sm">{post.likesCount}</span>
+            {liked ? (
+              <FaHeart className="h-5 w-5" />
+            ) : (
+              <FaRegHeart className="h-5 w-5" />
+            )}
+            <span className="text-sm">{likes}</span>
           </button>
 
           <Link
