@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+/* font */
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap");
+
+@import "tailwindcss";
+
+/* 1. Import Flowbite CSS plugin */
+
+/* 2. Tell Tailwind v4 where to scan Flowbite React files for utility classes */
+@source "../node_modules/flowbite-react/dist/**/*.mjs";
+
+body {
+  font-family: "Cairo", sans-serif;
+  background-color: #f0f2f5;
+}
+
+@theme {
+  --color-social-blue: #00298d;
+  --color-bg-square: #f2f6ff;
+  --color-brdr-color: #c9d5ff;
+}
+
