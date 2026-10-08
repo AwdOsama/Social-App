@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import type { Post } from "../../../interdaces/posts.inter";
 import { FaHeart, FaRegComment, FaRegHeart, FaShare } from "react-icons/fa";
 import { FiBookmark, FiMoreHorizontal } from "react-icons/fi";
+import { FaBookmark } from "react-icons/fa";
 import AddComment from "./comments/AddComment";
 import EditPostModal from "./EditPostModal";
 import { timeAgo } from "../../../utilites/timeAgo";
@@ -10,13 +11,14 @@ import { Link } from "react-router-dom";
 import PostOptionsDropdown from "../../../components/dropDowncopmpo/DropDown";
 import { authContext } from "../../../context/auth.context";
 import { likePost } from "../../posts/apis/like";
+import { bookmarkPost } from "../../posts/apis/savePost";
 
 export default function PostItems({ post }: { post: Post }) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Like state
+
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likesCount);
 
@@ -33,6 +35,21 @@ export default function PostItems({ post }: { post: Post }) {
         setLiked(prev.liked);
         setLikes(prev.likes);
       }
+    },
+  });
+
+
+  const [saved, setSaved] = useState(false);
+
+  const { mutate: toggleSave, isPending: isSaving } = useMutation({
+    mutationFn: () => bookmarkPost(post._id),
+    onMutate: () => {
+      const prevSaved = saved;
+      setSaved(!saved);
+      return { prevSaved };
+    },
+    onError: (_err, _vars, prev) => {
+      if (prev) setSaved(prev.prevSaved);
     },
   });
 
@@ -143,10 +160,20 @@ export default function PostItems({ post }: { post: Post }) {
 
         <button
           type="button"
-          aria-label="Save post"
-          className="text-gray-700 transition-colors hover:text-yellow-500 dark:text-gray-300 dark:hover:text-yellow-400"
+          aria-label={saved ? "Unsave post" : "Save post"}
+          onClick={() => toggleSave()}
+          disabled={isSaving}
+          className={`transition-colors hover:text-yellow-500 dark:hover:text-yellow-400 ${
+            saved
+              ? "text-yellow-500 dark:text-yellow-400"
+              : "text-gray-700 dark:text-gray-300"
+          }`}
         >
-          <FiBookmark className="h-5 w-5" />
+          {saved ? (
+            <FaBookmark className="h-5 w-5" />
+          ) : (
+            <FiBookmark className="h-5 w-5" />
+          )}
         </button>
       </div>
 
