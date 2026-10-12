@@ -17,8 +17,9 @@ export  const RegisterSchemObj = zod
     password: zod
       .string()
       .nonempty("this field is required!")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+    .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/,
+        "Min 8 chars with upper, lower, number and symbol",
       ),
     rePassword: zod.string().nonempty("this field is required!"),
     dateOfBirth: zod.string().refine(

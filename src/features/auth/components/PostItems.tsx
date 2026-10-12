@@ -11,13 +11,16 @@ import { Link } from "react-router-dom";
 import PostOptionsDropdown from "../../../components/dropDowncopmpo/DropDown";
 import { authContext } from "../../../context/auth.context";
 import { likePost } from "../../posts/apis/like";
+
 import { bookmarkPost } from "../../posts/apis/savePost";
+import SharePostModal from "./sharePostModal";
 
 export default function PostItems({ post }: { post: Post }) {
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shares, setShares] = useState(post.sharesCount);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
 
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likesCount);
@@ -37,7 +40,6 @@ export default function PostItems({ post }: { post: Post }) {
       }
     },
   });
-
 
   const [saved, setSaved] = useState(false);
 
@@ -151,10 +153,11 @@ export default function PostItems({ post }: { post: Post }) {
           <button
             type="button"
             aria-label="Share post"
+            onClick={() => setShareOpen(true)}
             className="flex items-center gap-1.5 text-gray-700 transition-colors hover:text-green-500 dark:text-gray-300 dark:hover:text-green-400"
           >
             <FaShare className="h-5 w-5" />
-            <span className="text-sm">{post.sharesCount}</span>
+            <span className="text-sm">{shares}</span>
           </button>
         </div>
 
@@ -204,6 +207,13 @@ export default function PostItems({ post }: { post: Post }) {
       {/* Edit Modal */}
       {editOpen && (
         <EditPostModal post={post} onClose={() => setEditOpen(false)} />
+      )}
+      {shareOpen && (
+        <SharePostModal
+          post={post}
+          onClose={() => setShareOpen(false)}
+          onShared={() => setShares((s) => s + 1)}
+        />
       )}
     </article>
   );

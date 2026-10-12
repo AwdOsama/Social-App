@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import {
   FiCamera,
   FiCheck,
@@ -9,6 +9,9 @@ import {
   FiMail,
 } from "react-icons/fi";
 import { authContext } from "../../context/auth.context";
+import { toast } from "react-toastify";
+import { uploadPhoto } from "../../features/posts/apis/uploadPhotoProfile";
+import { useMutation } from "@tanstack/react-query";
 
 const DEFAULT_COVER =
   "https://images.unsplash.com/photo-1503264116251-35a269479413?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80";
@@ -24,6 +27,28 @@ type TabKey = (typeof TABS)[number]["key"];
 export default function Profile() {
   const context = useContext(authContext);
   const [tab, setTab] = useState<TabKey>("posts");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: uploadPhoto,
+    onSuccess: (res) => {
+      const photo: string | undefined = res?.data?.photo;
+      if (photo && context?.user) {
+        const updated = { ...context.user, photo };
+        context.setUser(updated);
+        localStorage.setItem("user", JSON.stringify(updated));
+      }
+      toast.success("Photo updated");
+    },
+    onError: () => toast.error("Upload failed"),
+  });
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    mutate(file);
+    e.target.value = "";
+  }
 
   if (!context) return null;
 
@@ -62,10 +87,19 @@ export default function Profile() {
                     alt={user.name}
                     className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-md dark:border-gray-800 sm:h-36 sm:w-36"
                   />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleFile}
+                  />
                   <button
                     type="button"
                     aria-label="Change photo"
-                    className="absolute bottom-1 right-1 rounded-full border-2 border-white bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={isPending}
+                    className="absolute bottom-1 right-1 rounded-full border-2 border-white bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                   >
                     <FiCamera className="h-4 w-4" />
                   </button>

@@ -1,81 +1,89 @@
-import  { useState } from "react";
+import { useState } from "react";
 import Login from "../../features/auth/components/Login";
 import Register from "../../features/auth/components/Register";
+import ChangePassword from "../../features/auth/components/ChangePassword";
+
+type View = "login" | "register" | "password";
 
 export default function Home() {
-  const [active, setActive] = useState(true);
+  const [view, setView] = useState<View>("login");
 
-  function toggleActive() {
-    setActive(!active);
-  }
+  const tab = (v: View) =>
+    `w-1/2 pb-3 text-sm font-semibold transition-colors ${
+      view === v
+        ? "border-b-2 border-blue-600 text-blue-600"
+        : "text-gray-400 hover:text-gray-600"
+    }`;
 
   return (
-    <div className="container">
-      <div className="flex flex-wrap max-w-6xl  mx-auto h-screen justify-between items-center">
-        <div className="md:w-[50%] w-full">
-          <h1 className="hidden text-5xl font-extrabold tracking-tight text-[#00298d] sm:text-6xl lg:block">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="grid w-full max-w-5xl items-center gap-10 md:grid-cols-2">
+        {/* Left: intro */}
+        <div className="text-center md:text-left">
+          <h1 className="text-4xl font-extrabold tracking-tight text-blue-600 sm:text-5xl">
             Route Posts
           </h1>
-          <p className="hidden mt-4 text-2xl font-medium leading-snug text-slate-800 lg:block">
-            Connect with friends and the world around you on Route Posts.
+          <p className="mt-4 text-lg text-gray-600">
+            Connect with friends and the world around you.
           </p>
-          <div className="border my-10 shadow bg-white rounded-2xl p-4 border-brdr-color">
-            <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-[#00298d]">
-              About Route Academy
-            </p>
-            <p className="mt-1 text-lg font-bold text-slate-900">
-              Egypt's Leading IT Training Center Since 2012
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">
-              Route Academy is the premier IT training center in Egypt,
-              established in 2012. We specialize in delivering high-quality
-              training courses in programming, web development, and application
-              development. We've identified the unique challenges people may
-              face when learning new technology and made efforts to provide
-              strategies to overcome them.
-            </p>
-
-            <div className="grid grid-cols-3 gap-3 my-4">
-              {[...Array(5)].map(() => {
-                return (
-                  <div className="rounded-xl border border-[#c9d5ff] bg-[#f2f6ff] px-3 py-2">
-                    <p className="text-base font-extrabold text-[#00298d]">
-                      2012
-                    </p>
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">
-                      Founded
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <p className="mt-6 hidden text-sm leading-relaxed text-gray-500 md:block">
+            Route Academy is Egypt's leading IT training center since 2012,
+            specializing in programming, web development, and application
+            development.
+          </p>
         </div>
-        <div className="md:w-[40%] w-full">
-          <div className="border my-10 shadow bg-white rounded-2xl p-4 border-brdr-color">
-            <div className="flex text-center items-center text-social-blue font-bold bg-[#f0f2f5] p-1 rounded">
-              <div className="w-1/2 cursor-pointer">
-                <span
-                  onClick={toggleActive}
-                  style={active ? { backgroundColor: "white" } : {}}
-                  className="block p-1 rounded-md "
-                >
-                  Login
-                </span>
-              </div>
-              <div className="w-1/2 cursor-pointer">
-                <span
-                  className="block p-1 rounded-md "
-                  onClick={toggleActive}
-                  style={!active ? { background: "white" } : {}}
-                >
-                  Register
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {active ? <Login></Login> : <Register></Register>}
+        {/* Right: auth card */}
+        <div className="rounded-2xl bg-white p-6 shadow-lg">
+          {view !== "password" ? (
+            <div className="mb-6 flex border-b border-gray-200">
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className={tab("login")}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("register")}
+                className={tab("register")}
+              >
+                Register
+              </button>
+            </div>
+          ) : (
+            <h2 className="mb-6 border-b border-gray-200 pb-3 text-center text-sm font-semibold text-blue-600">
+              Change password
+            </h2>
+          )}
+
+          {view === "login" && <Login />}
+          {view === "register" && <Register />}
+          {view === "password" && (
+            <ChangePassword onDone={() => setView("login")} />
+          )}
+
+          <div className="mt-4 text-center">
+            {view === "login" && (
+              <button
+                type="button"
+                onClick={() => setView("password")}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Change password?
+              </button>
+            )}
+            {view === "password" && (
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="text-sm text-gray-500 hover:underline"
+              >
+                Back to login
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

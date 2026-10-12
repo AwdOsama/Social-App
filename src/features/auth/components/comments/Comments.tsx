@@ -65,8 +65,8 @@ function CommentItem({ comment }: { comment: CommentInterface }) {
           <p className="mt-1 whitespace-pre-line break-words text-sm text-gray-800 dark:text-gray-200">
             {comment.content}
           </p>
-
-          {/* {comment.commentCreator.photo && (
+{/* 
+          {comment.commentCreator.photo && (
             <img
               src={comment.commentCreator.photo}
               alt="Comment attachment"

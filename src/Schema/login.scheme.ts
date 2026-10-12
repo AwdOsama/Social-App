@@ -5,8 +5,9 @@ export const LoginScheme = zod.object({
   password: zod
     .string()
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    ),
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/,
+        "Min 8 chars with upper, lower, number and symbol",
+      ),
 });
 
 export type LoginSchemeType = zod.infer<typeof LoginScheme>;
