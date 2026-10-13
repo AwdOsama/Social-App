@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FiX } from "react-icons/fi";
 import type { Post } from "../../../interdaces/posts.inter";
 import { sharePost } from "../../posts/apis/sharePos";
+import { isAxiosError } from "axios";
+import { toast } from "react-toastify";
 
 type Props = {
   post: Post;
@@ -14,9 +16,15 @@ export default function SharePostModal({ post, onClose, onShared }: Props) {
   const query = useQueryClient();
   const [body, setBody] = useState("");
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: sharePost,
-  });
+
+
+const { isPending, mutate } = useMutation({
+  mutationFn: sharePost,
+  onError: (err) => {
+    const msg = isAxiosError(err) ? err.response?.data?.message : undefined;
+    toast.error(msg ?? "Something went wrong");
+  },
+});;
 
   function handleShare() {
     mutate(

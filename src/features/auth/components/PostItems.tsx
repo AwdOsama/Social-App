@@ -107,6 +107,38 @@ export default function PostItems({ post }: { post: Post }) {
           </p>
         </div>
       )}
+      {/* Shared (original) post */}
+      {post.isShare && post.sharedPost && (
+        <div className="mx-4 mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 p-3">
+            <img
+              className="h-8 w-8 rounded-full object-cover"
+              src={post.sharedPost.user?.photo}
+              alt={post.sharedPost.user?.name}
+            />
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {post.sharedPost.user?.name}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {timeAgo(post.sharedPost.createdAt)}
+              </span>
+            </div>
+          </div>
+          {post.sharedPost.body && (
+            <p className="whitespace-pre-line break-words px-3 pb-3 text-sm text-gray-700 dark:text-gray-300">
+              {post.sharedPost.body}
+            </p>
+          )}
+          {post.sharedPost.image && (
+            <img
+              className="max-h-80 w-full object-cover object-center"
+              src={post.sharedPost.image}
+              alt="Shared post content"
+            />
+          )}
+        </div>
+      )}
 
       {/* Post Image */}
       {post.image && (
