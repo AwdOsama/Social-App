@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Post } from "../../../interdaces/posts.inter";
 import { FaHeart, FaRegComment, FaRegHeart, FaShare } from "react-icons/fa";
 import { FiBookmark, FiMoreHorizontal } from "react-icons/fi";
@@ -16,47 +16,62 @@ import { bookmarkPost } from "../../posts/apis/savePost";
 import SharePostModal from "./sharePostModal";
 
 export default function PostItems({ post }: { post: Post }) {
+  const query = useQueryClient();
+  const context = useContext(authContext);
+  const isMyPost = !!context?.user && context.user._id === post.user._id;
+
   const [shareOpen, setShareOpen] = useState(false);
   const [shares, setShares] = useState(post.sharesCount);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(post.likesCount);
+  const serverLiked =
+    !!post.isLiked ||
+    (!!context?.user &&
+      !!post.likes?.some(
+        (l) => (typeof l === "string" ? l : l._id) === context.user?._id,
+      ));
+  const serverSaved = !!post.bookmarked;
+
+  const [likedOverride, setLikedOverride] = useState<boolean | null>(null);
+  const [savedOverride, setSavedOverride] = useState<boolean | null>(null);
+
+  const liked = likedOverride ?? serverLiked;
+  const saved = savedOverride ?? serverSaved;
+  const likes =
+    post.likesCount +
+    (likedOverride === null ? 0 : Number(liked) - Number(serverLiked));
 
   const { mutate: toggleLike, isPending } = useMutation({
     mutationFn: () => likePost(post._id),
     onMutate: () => {
-      const prev = { liked, likes };
-      setLiked(!liked);
-      setLikes(liked ? likes - 1 : likes + 1);
-      return prev;
+      setLikedOverride(!liked);
     },
-    onError: (_err, _vars, prev) => {
-      if (prev) {
-        setLiked(prev.liked);
-        setLikes(prev.likes);
-      }
+    onError: () => {
+      setLikedOverride(null);
+    },
+    onSuccess: async () => {
+      await query.invalidateQueries({ queryKey: ["posts"] });
+      await query.invalidateQueries({ queryKey: ["post", post._id] });
+      setLikedOverride(null);
     },
   });
-
-  const [saved, setSaved] = useState(false);
 
   const { mutate: toggleSave, isPending: isSaving } = useMutation({
     mutationFn: () => bookmarkPost(post._id),
     onMutate: () => {
-      const prevSaved = saved;
-      setSaved(!saved);
-      return { prevSaved };
+      setSavedOverride(!saved);
     },
-    onError: (_err, _vars, prev) => {
-      if (prev) setSaved(prev.prevSaved);
+    onError: () => {
+      setSavedOverride(null);
+    },
+    onSuccess: async () => {
+      await query.invalidateQueries({ queryKey: ["posts"] });
+      await query.invalidateQueries({ queryKey: ["post", post._id] });
+      setSavedOverride(null);
     },
   });
-
-  const context = useContext(authContext);
-  const isMyPost = !!context?.user && context.user._id === post.user._id;
 
   return (
     <article className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-colors dark:border-gray-700 dark:bg-gray-800">
