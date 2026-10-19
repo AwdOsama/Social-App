@@ -13,7 +13,9 @@ import { authContext } from "../../../context/auth.context";
 import { likePost } from "../../posts/apis/like";
 
 import { bookmarkPost } from "../../posts/apis/savePost";
+import { toast } from "react-toastify";
 import SharePostModal from "./sharePostModal";
+import { followUser } from "../../posts/apis/follow";
 
 export default function PostItems({ post }: { post: Post }) {
   const query = useQueryClient();
@@ -53,6 +55,8 @@ export default function PostItems({ post }: { post: Post }) {
     },
     onSuccess: async () => {
       await query.invalidateQueries({ queryKey: ["posts"] });
+      await query.invalidateQueries({ queryKey: ["myPosts"] });
+      await query.invalidateQueries({ queryKey: ["savedPosts"] });
       await query.invalidateQueries({ queryKey: ["post", post._id] });
       setLikedOverride(null);
     },
@@ -68,8 +72,34 @@ export default function PostItems({ post }: { post: Post }) {
     },
     onSuccess: async () => {
       await query.invalidateQueries({ queryKey: ["posts"] });
+      await query.invalidateQueries({ queryKey: ["myPosts"] });
+      await query.invalidateQueries({ queryKey: ["savedPosts"] });
+      await query.invalidateQueries({ queryKey: ["myProfile"] });
       await query.invalidateQueries({ queryKey: ["post", post._id] });
       setSavedOverride(null);
+    },
+  });
+
+  const profilePath = isMyPost ? "/profile" : `/userprofile/${post.user._id}`;
+
+  const serverFollowed = !!(post.user as { isFollowing?: boolean }).isFollowing;
+  const [followOverride, setFollowOverride] = useState<boolean | null>(null);
+  const following = followOverride ?? serverFollowed;
+
+  const { mutate: toggleFollow, isPending: isFollowPending } = useMutation({
+    mutationFn: () => followUser(post.user._id),
+    onMutate: () => {
+      setFollowOverride(!following);
+    },
+    onError: () => {
+      setFollowOverride(null);
+      toast.error("Something went wrong");
+    },
+    onSuccess: async () => {
+      await query.invalidateQueries({ queryKey: ["posts"] });
+      await query.invalidateQueries({ queryKey: ["myPosts"] });
+      await query.invalidateQueries({ queryKey: ["savedPosts"] });
+      await query.invalidateQueries({ queryKey: ["myProfile"] });
     },
   });
 
@@ -78,20 +108,40 @@ export default function PostItems({ post }: { post: Post }) {
       {/* Post Header */}
       <div className="flex items-center justify-between border-b border-gray-100 p-3 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <img
-            className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500/30"
-            src={post.user?.photo}
-            alt={post.user.name}
-          />
+          <Link to={profilePath} aria-label={`${post.user.name}'s profile`}>
+            <img
+              className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500/30"
+              src={post.user?.photo}
+              alt={post.user.name}
+            />
+          </Link>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <Link
+              to={profilePath}
+              className="text-sm font-semibold text-gray-900 hover:underline dark:text-gray-100"
+            >
               {post.user.name}
-            </span>
+            </Link>
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {timeAgo(post?.createdAt)}
             </span>
           </div>
         </div>
+
+        {!isMyPost && !!context?.user && (
+          <button
+            type="button"
+            onClick={() => toggleFollow()}
+            disabled={isFollowPending}
+            className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${
+              following
+                ? "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            {following ? "Following" : "Follow"}
+          </button>
+        )}
 
         {isMyPost && (
           <div className="relative" ref={menuRef}>

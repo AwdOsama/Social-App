@@ -10,6 +10,8 @@ import Notifications from "./pages/Notifications/Notifications";
 import Profile from "./pages/Profile/Profile";
 import PostDatailes from "./features/PostDatailes/PostDatailes";
 import MainRoute from "./MiddleWare/MainRoute";
+import Setting from "./pages/setting/Setting";
+import UserProfile from "./pages/Profile/UserProfile";
 
 export default function App() {
   const routes = createHashRouter([
@@ -43,6 +45,14 @@ export default function App() {
           ),
         },
         {
+          path: "/settings",
+          element: (
+            <ProtectedRoute>
+              <Setting />
+            </ProtectedRoute>
+          ),
+        },
+        {
           path: "/notifications",
           element: (
             <ProtectedRoute>
@@ -56,6 +66,14 @@ export default function App() {
           element: (
             <ProtectedRoute>
               <PostDatailes />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/userprofile/:id",
+          element: (
+            <ProtectedRoute>
+              <UserProfile />
             </ProtectedRoute>
           ),
         },

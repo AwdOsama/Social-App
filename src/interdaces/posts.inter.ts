@@ -106,3 +106,9 @@ export interface Pagination {
   nextPage: number;
   total: number;
 }
+export interface BookmarksRoot {
+  success: boolean;
+  message: string;
+  data: { bookmarks: Post[] };
+  meta: Meta;
+}

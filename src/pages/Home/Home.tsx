@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Login from "../../features/auth/components/Login";
 import Register from "../../features/auth/components/Register";
-import ChangePassword from "../../features/auth/components/ChangePassword";
+import ChangePassword from "../setting/ChangePassword";
 
 type View = "login" | "register" | "password";
 
@@ -63,27 +63,6 @@ export default function Home() {
           {view === "password" && (
             <ChangePassword onDone={() => setView("login")} />
           )}
-
-          <div className="mt-4 text-center">
-            {view === "login" && (
-              <button
-                type="button"
-                onClick={() => setView("password")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Change password?
-              </button>
-            )}
-            {view === "password" && (
-              <button
-                type="button"
-                onClick={() => setView("login")}
-                className="text-sm text-gray-500 hover:underline"
-              >
-                Back to login
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>

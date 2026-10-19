@@ -124,7 +124,9 @@ export function NavbarCom() {
             <DropdownItem icon={FiUser} onClick={() => navigate("/profile")}>
               Profile
             </DropdownItem>
-            <DropdownItem icon={FiSettings}>Setting</DropdownItem>
+            <DropdownItem icon={FiSettings} onClick={() => navigate("/settings")}>
+              Setting
+            </DropdownItem>
             <DropdownDivider />
             <DropdownItem icon={FiLogOut} onClick={logOut}>
               Log out
