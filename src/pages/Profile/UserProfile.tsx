@@ -8,6 +8,7 @@ import { authContext } from "../../context/auth.context";
 import MyPosts from "./components/MyPosts";
 import { getUserProfile } from "./api/getUserProfile";
 import { followUser } from "../../features/posts/apis/follow";
+import { ImSpinner7 } from "react-icons/im";
 
 const DEFAULT_COVER =
   "https://images.unsplash.com/photo-1503264116251-35a269479413?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80";
@@ -38,6 +39,7 @@ export default function UserProfile() {
       await queryClient.invalidateQueries({ queryKey: ["userProfile", id] });
       await queryClient.invalidateQueries({ queryKey: ["myProfile"] });
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setFollowOverride(null);
     },
   });
 
@@ -144,13 +146,19 @@ export default function UserProfile() {
                 type="button"
                 onClick={() => toggleFollow()}
                 disabled={isPending}
-                className={`rounded-lg px-6 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${
+                className={`flex min-w-[110px] items-center justify-center rounded-lg px-6 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70 ${
                   following
                     ? "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
               >
-                {following ? "Following" : "Follow"}
+                {isPending ? (
+                  <ImSpinner7 className="h-4 w-4 animate-spin" />
+                ) : following ? (
+                  "Following"
+                ) : (
+                  "Follow"
+                )}
               </button>
             </div>
           </div>
@@ -181,7 +189,7 @@ export default function UserProfile() {
               <FiFileText className="h-4 w-4" />
               Posts
             </h2>
-            <MyPosts userId={id}  />
+            <MyPosts userId={id} />
           </section>
         </div>
       </div>

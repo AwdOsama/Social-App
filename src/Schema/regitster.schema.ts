@@ -1,7 +1,7 @@
 import * as zod from "zod";
+import { passwordRule } from "./Password";
 
-// schema
-export  const RegisterSchemObj = zod
+export const RegisterSchemObj = zod
   .object({
     name: zod
       .string()
@@ -14,13 +14,7 @@ export  const RegisterSchemObj = zod
       .string()
       .nonempty("this field is required!")
       .email("not valid email"),
-    password: zod
-      .string()
-      .nonempty("this field is required!")
-    .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/,
-        "Min 8 chars with upper, lower, number and symbol",
-      ),
+    password: passwordRule,
     rePassword: zod.string().nonempty("this field is required!"),
     dateOfBirth: zod.string().refine(
       (data) => {
@@ -44,5 +38,4 @@ export  const RegisterSchemObj = zod
     },
   );
 
-
- export type RegiterSchema = zod.infer<typeof RegisterSchemObj>;
+export type RegiterSchema = zod.infer<typeof RegisterSchemObj>;

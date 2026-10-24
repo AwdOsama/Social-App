@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Post } from "../../../interdaces/posts.inter";
 import { FaHeart, FaRegComment, FaRegHeart, FaShare } from "react-icons/fa";
 import { FiBookmark, FiMoreHorizontal } from "react-icons/fi";
@@ -16,6 +16,8 @@ import { bookmarkPost } from "../../posts/apis/savePost";
 import { toast } from "react-toastify";
 import SharePostModal from "./sharePostModal";
 import { followUser } from "../../posts/apis/follow";
+import { ImSpinner7 } from "react-icons/im";
+import { getMyProfile } from "../../../pages/Profile/api/getMyProfile";
 
 export default function PostItems({ post }: { post: Post }) {
   const query = useQueryClient();
@@ -80,12 +82,6 @@ export default function PostItems({ post }: { post: Post }) {
     },
   });
 
-  const profilePath = isMyPost ? "/profile" : `/userprofile/${post.user._id}`;
-
-  const serverFollowed = !!(post.user as { isFollowing?: boolean }).isFollowing;
-  const [followOverride, setFollowOverride] = useState<boolean | null>(null);
-  const following = followOverride ?? serverFollowed;
-
   const { mutate: toggleFollow, isPending: isFollowPending } = useMutation({
     mutationFn: () => followUser(post.user._id),
     onMutate: () => {
@@ -100,9 +96,31 @@ export default function PostItems({ post }: { post: Post }) {
       await query.invalidateQueries({ queryKey: ["myPosts"] });
       await query.invalidateQueries({ queryKey: ["savedPosts"] });
       await query.invalidateQueries({ queryKey: ["myProfile"] });
+      await query.invalidateQueries({
+        queryKey: ["userProfile", post.user._id],
+      });
+      setFollowOverride(null);
     },
   });
+  const { data: myProfileRes } = useQuery({
+    queryKey: ["myProfile"],
+    queryFn: getMyProfile,
+    enabled: !!context?.user,
+  });
 
+  const myFollowing: (string | { _id: string })[] =
+    myProfileRes?.data?.user?.following ?? [];
+
+  const serverFollowed =
+    !!(post.user as { isFollowing?: boolean }).isFollowing ||
+    myFollowing.some(
+      (f) => (typeof f === "string" ? f : f._id) === post.user._id,
+    );
+
+  const profilePath = isMyPost ? "/profile" : `/userprofile/${post.user._id}`;
+
+  const [followOverride, setFollowOverride] = useState<boolean | null>(null);
+  const following = followOverride ?? serverFollowed;
   return (
     <article className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-colors dark:border-gray-700 dark:bg-gray-800">
       {/* Post Header */}
@@ -133,13 +151,19 @@ export default function PostItems({ post }: { post: Post }) {
             type="button"
             onClick={() => toggleFollow()}
             disabled={isFollowPending}
-            className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:opacity-50 ${
+            className={`flex min-w-[88px] items-center justify-center rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70 ${
               following
                 ? "border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
-            {following ? "Following" : "Follow"}
+            {isFollowPending ? (
+              <ImSpinner7 className="h-3.5 w-3.5 animate-spin" />
+            ) : following ? (
+              "Following"
+            ) : (
+              "Follow"
+            )}
           </button>
         )}
 
